@@ -25,6 +25,7 @@ __all__ = [
     "update_secret",
     "wait_unless",
     # From `slurm/common.py`
+    "AUTH_KEY_LABEL",
     "ControllerData",
     "SlurmctldConnectedEvent",
     "SlurmctldDisconnectedEvent",
@@ -73,6 +74,7 @@ from .base import (
     wait_unless,
 )
 from .slurm.common import (
+    AUTH_KEY_LABEL,
     ControllerData,
     SlurmctldConnectedEvent,
     SlurmctldDisconnectedEvent,
