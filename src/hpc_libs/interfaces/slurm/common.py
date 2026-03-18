@@ -42,7 +42,7 @@ from hpc_libs.interfaces.base import (
 )
 from hpc_libs.utils import leader
 
-AUTH_KEY_TEMPLATE_LABEL = Template("integration-$id-auth-key-secret")
+AUTH_KEY_LABEL = "auth-key-secret"
 JWT_KEY_TEMPLATE_LABEL = Template("integration-$id-jwt-key-secret")
 
 
@@ -66,7 +66,6 @@ class ControllerData:
     """Data provided by the Slurm controller service, `slurmctld`.
 
     Attributes:
-        auth_key: Base64-encoded string representing the `auth/slurm` key.
         auth_key_id: ID of the `auth/slurm` key Juju secret for this integration instance.
         controllers:
             List of controller addresses for that can be used by Slurm services
@@ -171,12 +170,6 @@ class SlurmctldProvider(Interface):
         if self._stored.unit_departing:
             return
 
-        if auth_secret := load_secret(
-            self.charm,
-            label=AUTH_KEY_TEMPLATE_LABEL.substitute(id=event.relation.id),
-        ):
-            auth_secret.remove_all_revisions()
-
         if jwt_secret := load_secret(
             self.charm,
             label=JWT_KEY_TEMPLATE_LABEL.substitute(id=event.relation.id),
@@ -199,14 +192,9 @@ class SlurmctldProvider(Interface):
         if integration_id is not None:
             integration = self.get_integration(integration_id)
 
-            if data.auth_key:
-                secret = update_secret(
-                    self.charm,
-                    AUTH_KEY_TEMPLATE_LABEL.substitute(id=integration_id),
-                    {"key": data.auth_key},
-                )
+            if data.auth_key_id:
+                secret = self.model.get_secret(id=data.auth_key_id)
                 secret.grant(integration)
-                object.__setattr__(data, "auth_key_id", secret.id)
 
             if data.jwt_key:
                 secret = update_secret(
@@ -218,7 +206,6 @@ class SlurmctldProvider(Interface):
                 object.__setattr__(data, "jwt_key_id", secret.id)
 
         # Redact secrets. "***" indicates that an interface did not unlock a secret.
-        object.__setattr__(data, "auth_key", "***")
         object.__setattr__(data, "jwt_key", "***")
 
         self._save_integration_data(data, self.app, integration_id, encoder=encoder)
