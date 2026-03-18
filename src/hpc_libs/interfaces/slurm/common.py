@@ -43,6 +43,8 @@ from hpc_libs.interfaces.base import (
 from hpc_libs.utils import leader
 
 AUTH_KEY_LABEL = "auth-key-secret"
+"""Label for the Juju secret storing the Slurm auth key. Used by multiple Slurm services."""
+
 JWT_KEY_TEMPLATE_LABEL = Template("integration-$id-jwt-key-secret")
 
 
