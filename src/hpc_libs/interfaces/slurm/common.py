@@ -68,6 +68,8 @@ class ControllerData:
     """Data provided by the Slurm controller service, `slurmctld`.
 
     Attributes:
+        auth_key: Base64-encoded string representing the `auth/slurm` key.
+        auth_key_content_id: ID of the current `auth/slurm` key.
         auth_key_id: ID of the `auth/slurm` key Juju secret for this integration instance.
         controllers:
             List of controller addresses for that can be used by Slurm services
@@ -85,6 +87,7 @@ class ControllerData:
     """
 
     auth_key: str = ""
+    auth_key_content_id: str = ""
     auth_key_id: str = ""
     controllers: list[str] = field(default_factory=list)
     jwt_key: str = ""
@@ -274,6 +277,10 @@ class SlurmctldRequirer(Interface):
     def get_controller_data(self, integration_id: int | None = None) -> ControllerData:
         """Get controller data from the `slurmctld` application databag."""
         data = self._load_integration_data(ControllerData, integration_id=integration_id).pop()
+        if data.auth_key_id:
+            auth_key = self.charm.model.get_secret(id=data.auth_key_id)
+            object.__setattr__(data, "auth_key", auth_key.get_content().get("key"))
+            object.__setattr__(data, "auth_key_content_id", auth_key.get_content().get("keyid"))
         if data.jwt_key_id:
             jwt_key = self.charm.model.get_secret(id=data.jwt_key_id)
             object.__setattr__(data, "jwt_key", jwt_key.get_content().get("key"))
