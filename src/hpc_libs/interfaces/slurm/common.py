@@ -278,7 +278,9 @@ class SlurmctldRequirer(Interface):
         """Get controller data from the `slurmctld` application databag."""
         data = self._load_integration_data(ControllerData, integration_id=integration_id).pop()
         if data.auth_key_id:
-            auth_key = self.charm.model.get_secret(id=data.auth_key_id)
+            # Get by both ID and label to ensure secret is updated with the correct label on the
+            # observer side
+            auth_key = self.charm.model.get_secret(id=data.auth_key_id, label=AUTH_KEY_LABEL)
             object.__setattr__(data, "auth_key", auth_key.get_content().get("key"))
             object.__setattr__(data, "auth_key_content_id", auth_key.get_content().get("keyid"))
         if data.jwt_key_id:
