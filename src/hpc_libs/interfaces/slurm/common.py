@@ -28,7 +28,6 @@ __all__ = [
 import json
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass, field
-import logging
 from string import Template
 from typing import Any
 
@@ -48,7 +47,6 @@ AUTH_KEY_LABEL = "auth-key-secret"
 
 JWT_KEY_TEMPLATE_LABEL = Template("integration-$id-jwt-key-secret")
 
-logger = logging.getLogger(__name__)
 
 class _SlurmJSONEncoder(json.JSONEncoder):
     """Custom JSON encoder for working with `slurmutils` models."""
@@ -196,14 +194,12 @@ class SlurmctldProvider(Interface):
                 all integrations will be updated. This argument must be set for a
                 integration to be granted access to the `auth_key` and `jwt_key` secrets.
         """
-        logger.debug("DSM: Setting controller data: %s", data)
         if integration_id is not None:
             integration = self.get_integration(integration_id)
 
             if data.auth_key_id:
                 secret = self.model.get_secret(id=data.auth_key_id)
                 secret.grant(integration)
-                logger.debug("DSM: Granted access to auth key secret with id %s for integration with id %s", data.auth_key_id, integration_id)
 
             if data.jwt_key:
                 secret = update_secret(
@@ -281,7 +277,6 @@ class SlurmctldRequirer(Interface):
     def get_controller_data(self, integration_id: int | None = None) -> ControllerData:
         """Get controller data from the `slurmctld` application databag."""
         data = self._load_integration_data(ControllerData, integration_id=integration_id).pop()
-        logger.debug("DSM: Loaded controller data: %s", data)
         if data.auth_key_id:
             # Get by both ID and label to ensure secret is updated with the correct label on the
             # observer side
@@ -292,5 +287,4 @@ class SlurmctldRequirer(Interface):
             jwt_key = self.charm.model.get_secret(id=data.jwt_key_id)
             object.__setattr__(data, "jwt_key", jwt_key.get_content().get("key"))
 
-        logger.debug("DSM: Returning controller data: %s", data)
         return data
