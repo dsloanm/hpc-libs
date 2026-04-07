@@ -284,12 +284,15 @@ class Interface(ops.Object):
             integration_id: ID of integration to update.
             encoder: Callable that will be used to encode each field.
         """
+        _logger.debug("DSM: Saving integration data data: %s to target %s on integration ID %s", data, target, integration_id)
+
         integrations = self.integrations
         if integration_id is not None:
             integrations = [self.get_integration(integration_id)]
 
         for integration in integrations:
             integration.save(data, target, encoder=encoder)
+            _logger.debug("DSM: Successfully saved integration data to target %s on integration %s", target, integration)
 
 
 class ConditionEvaluation(NamedTuple):  # noqa D101
